@@ -1,8 +1,8 @@
-node_modules
-coverage
+/node_modules
+/coverage
+/dist
+./dist
 
 *.env
 .env
-.env*
-
-dist
+.env.*

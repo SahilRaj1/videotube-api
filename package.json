@@ -2,12 +2,11 @@
   "name": "videotube-api",
   "version": "1.0.0",
   "description": "video streaming platform RESTful API",
-  "main": "index.ts",
-  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "nodemon dist/src/index.js",
     "build": "tsc",
-    "dev": "tsc -w & nodemon dist/index.js"
+    "dev": "tsc -w & nodemon -r --experimental-json-modules dist/index.js"
   },
   "repository": {
     "type": "git",
