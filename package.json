@@ -4,9 +4,9 @@
   "description": "video streaming platform RESTful API",
   "main": "src/index.ts",
   "scripts": {
-    "start": "nodemon dist/src/index.js",
-    "build": "tsc",
-    "dev": "tsc -w & nodemon -r --experimental-json-modules dist/index.js"
+    "build": "npx tsc",
+    "start": "node dist/src/index.js",
+    "dev": "nodemon src/index.ts"
   },
   "repository": {
     "type": "git",
