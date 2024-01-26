@@ -7,10 +7,10 @@ import ApiResponse from "../utils/ApiResponse";
 
 export const registerUser = asyncHandler(
     async (req: Request, res: Response) => {
-        const { username, email, password, fullname } = req.body;
+        const { username, email, password, fullName } = req.body;
 
         if (
-            [fullname, email, password, username].some(
+            [fullName, email, password, username].some(
                 (field: string) => field?.trim() === ""
             )
         ) {
@@ -28,8 +28,8 @@ export const registerUser = asyncHandler(
             );
         }
 
-        const avatarLocalPath = (req.files! as any).avatar[0]?.path;
-        const coverImageLocalPath = (req.files! as any).coverImage[0]?.path;
+        const avatarLocalPath = (req.files as any).avatar?.[0]?.path;
+        const coverImageLocalPath = (req.files as any).coverImage?.[0]?.path;
 
         if (!avatarLocalPath) {
             throw new ApiError(400, "Avatar file is required");
@@ -43,7 +43,7 @@ export const registerUser = asyncHandler(
         }
 
         const user = await User.create({
-            fullname,
+            fullName,
             avatar: avatar.url,
             coverImage: coverImage?.url || "",
             email,
