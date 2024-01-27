@@ -226,3 +226,158 @@ export const refreshAccessToken = asyncHandler(
             );
     }
 );
+
+export const changeCurrentPassword = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { oldPassword, newPassword } = req.body;
+
+        const user = await User.findById((req as any).user?._id);
+        const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+        if (!isPasswordCorrect) {
+            throw new ApiError(400, "Invalid old password");
+        }
+
+        user.password = newPassword;
+        await user.save({ validateBeforeSave: false });
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {},
+                    "Password changed successfully"
+                )
+            );
+    }
+);
+
+export const getCurrentUser = asyncHandler(
+    async (req: Request, res: Response) => {
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    (req as any).user,
+                    "Current user fetched successfully"
+                )
+            );
+    }
+);
+
+export const updateAccountDetails = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { fullName, username } = req.body;
+        const updateFields: Record<string, any> = {}
+
+        if (!fullName && !username) {
+            return new ApiError(400, "Nothing to update");
+        }
+
+        if (fullName) {
+            updateFields.fullName = fullName;
+        }
+
+        if (username) {
+            updateFields.username = username;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            (req as any).user?._id,
+            {
+                $set: updateFields
+            },
+            {
+                new: true
+            }
+        ).select("-password -refreshToken");
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    updatedUser,
+                    "Account updated successfully"
+                )
+            );
+    }
+);
+
+export const updateUserAvatar = asyncHandler(
+    async (req: Request, res: Response) => {
+        const avatarLocalPath = req.file?.path;
+
+        if (!avatarLocalPath) {
+            throw new ApiError(400, "Avatar file is required");
+        }
+
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+        if (!avatar) {
+            throw new ApiError(400, "Avatar file is required");
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            (req as any).user?._id,
+            {
+                $set: {
+                    avatar: avatar.url
+                }
+            },
+            {
+                new: true
+            }
+        ).select("-password -refreshToken");
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    updatedUser,
+                    "Avatar updated successfully"
+                )
+            );
+    }
+);
+
+export const updateUserCoverImage = asyncHandler(
+    async (req: Request, res: Response) => {
+        const coverImageLocalPath = req.file?.path;
+
+        if (!coverImageLocalPath) {
+            throw new ApiError(400, "Cover Image file is required");
+        }
+
+        const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+        if (!coverImage) {
+            throw new ApiError(400, "Cover Image file is required");
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            (req as any).user?._id,
+            {
+                $set: {
+                    coverImage: coverImage.url
+                }
+            },
+            {
+                new: true
+            }
+        ).select("-password -refreshToken");
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    updatedUser,
+                    "Cover Image updated successfully"
+                )
+            );
+    }
+);
