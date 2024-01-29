@@ -32,6 +32,6 @@ router.route("/change-password").post(validateToken, changeCurrentPassword);
 router.route("/current-user").get(validateToken, getCurrentUser);
 router.route("/update-account").put(validateToken, updateAccountDetails);
 router.route("/update-avatar").put(validateToken, upload.single("avatar"), updateUserAvatar);
-router.route("/update-cover").put(validateToken, upload.single("coverImage"), updateUserCoverImage);
+router.route("/update-cover").put(validateToken, upload.single("coverImage"), updateUserCoverImage);    
 
 export default router;

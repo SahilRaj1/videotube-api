@@ -4,6 +4,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { NextFunction, Request, Response } from "express";
 import ApiError from "../utils/ApiError";
 import User from "../models/user.model";
+import { userDontInclude } from "../constants";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ export const validateToken = asyncHandler(
 
         const user = await User.findById(
             (decodedToken as JwtPayload)?._id
-        ).select("-password -refreshToken");
+        ).select(userDontInclude);
 
         if (!user) {
             throw new ApiError(401, "Invalid access token");

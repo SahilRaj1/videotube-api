@@ -24,3 +24,15 @@ export const uploadOnCloudinary = async (localFilePath: string) => {
         return null;
     }
 };
+
+export const deleteFromCloudinary = async (publicId: string) => {
+    try {
+        await cloudinary.uploader.destroy(publicId, {
+            invalidate: true,
+            resource_type: "image",
+        });
+        return true;
+    } catch (error) {
+        return false;
+    }
+};

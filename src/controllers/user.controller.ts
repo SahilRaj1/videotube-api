@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import asyncHandler from "../utils/asyncHandler";
 import User from "../models/user.model";
 import ApiError from "../utils/ApiError";
-import { uploadOnCloudinary } from "../utils/cloudinary";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary";
 import ApiResponse from "../utils/ApiResponse";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+import { cookieOptions, userDontInclude } from "../constants";
 
 dotenv.config();
 
@@ -63,15 +64,17 @@ export const registerUser = asyncHandler(
 
         const user = await User.create({
             fullName,
-            avatar: avatar.url,
-            coverImage: coverImage?.url || "",
+            avatarUrl: avatar.url,
+            avatarPublicId: avatar.public_id,
+            coverImageUrl: coverImage?.url || "",
+            coverImagePublicId: coverImage?.public_id || "",
             email,
             password,
             username: username.toLowerCase(),
         });
 
         const createdUser = await User.findById(user._id).select(
-            "-password -refreshToken"
+            userDontInclude
         );
 
         if (!createdUser) {
@@ -119,18 +122,13 @@ export const loginUser = asyncHandler(
         );
 
         const loggedInUser = await User.findById(user._id).select(
-            "-password -refreshToken"
+            userDontInclude
         );
-
-        const options = {
-            httpOnly: true,
-            secure: true,
-        };
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("refreshToken", refreshToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
@@ -159,15 +157,10 @@ export const logoutUser = asyncHandler(
             }
         );
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-        }
-
         return res
             .status(200)
-            .clearCookie("accessToken", options)
-            .clearCookie("refreshToken", options)
+            .clearCookie("accessToken", cookieOptions)
+            .clearCookie("refreshToken", cookieOptions)
             .json(
                 new ApiResponse(
                     200,
@@ -201,19 +194,14 @@ export const refreshAccessToken = asyncHandler(
             throw new ApiError(401, "Refresh token is expired or used");
         }
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-        }
-
         const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(
             user._id
         );
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("refreshToken", newRefreshToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
@@ -292,7 +280,7 @@ export const updateAccountDetails = asyncHandler(
             {
                 new: true
             }
-        ).select("-password -refreshToken");
+        ).select(userDontInclude);
 
         return res
             .status(200)
@@ -320,17 +308,25 @@ export const updateUserAvatar = asyncHandler(
             throw new ApiError(400, "Avatar file is required");
         }
 
+        const oldAvatarPublicId = (await User.findById((req as any).user._id)).avatarPublicId;
+
         const updatedUser = await User.findByIdAndUpdate(
             (req as any).user?._id,
             {
                 $set: {
-                    avatar: avatar.url
+                    avatarUrl: avatar.url,
+                    avatarPublicId: avatar.public_id
                 }
             },
             {
                 new: true
             }
-        ).select("-password -refreshToken");
+        ).select(userDontInclude);
+
+        const isOldAvatarDeleted = await deleteFromCloudinary(oldAvatarPublicId);
+        if (!isOldAvatarDeleted) {
+            throw new ApiError(500, "Unable to delete previous cover image");
+        }
 
         return res
             .status(200)
@@ -358,17 +354,25 @@ export const updateUserCoverImage = asyncHandler(
             throw new ApiError(400, "Cover Image file is required");
         }
 
+        const oldCoverImagePublicId = (await User.findById((req as any).user._id)).coverImagePublicId;
+
         const updatedUser = await User.findByIdAndUpdate(
             (req as any).user?._id,
             {
                 $set: {
-                    coverImage: coverImage.url
+                    coverImageUrl: coverImage.url,
+                    coverImagePublicId: coverImage.public_id 
                 }
             },
             {
                 new: true
             }
-        ).select("-password -refreshToken");
+        ).select(userDontInclude);
+
+        const isOldCoverDeleted = await deleteFromCloudinary(oldCoverImagePublicId);
+        if (!isOldCoverDeleted) {
+            throw new ApiError(500, "Unable to delete previous cover image");
+        }
 
         return res
             .status(200)
