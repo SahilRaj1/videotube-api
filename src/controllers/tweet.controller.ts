@@ -20,9 +20,8 @@ export const createTweet = asyncHandler(
             owner: new mongoose.Types.ObjectId((req as any).user?._id)
         });
 
-        const createdTweet = await Tweet.findById(tweet?._id);
-        if (!createdTweet) {
-            return new ApiError(500, "")
+        if (!tweet) {
+            return new ApiError(500, "Some error occured while creating a tweet");
         }
 
         return res
@@ -39,10 +38,14 @@ export const createTweet = asyncHandler(
 
 export const getUserTweets = asyncHandler(
     async (req:Request, res: Response) => {
-        const {userId} = req.params;
-        const { page = 1, limit = 10, query, sortType } = req.query;
+        const { userId } = req.params;
+        const { page = 1, limit = 10, sortType } = req.query;
 
-        // ?page=1&sortBy=views&sortType=asc&limit=4
+        if (!isValidObjectId(userId)) {
+            return new ApiError(400, "Invalid user id");
+        }
+
+        // ?page=1&sortBy=views&sortType=old&limit=4
         const parsedLimit = parseInt((limit as any));
         const pageSkip = (parseInt(page as any) - 1) * parsedLimit;
         const sortBy = sortType === 'old' ? -1 : 1;
@@ -127,7 +130,7 @@ export const updateTweet = asyncHandler(
         );
 
         if (!tweet) {
-            return new ApiError(404, "Tweet not found");
+            return new ApiError(404, "Tweet not found or not updated");
         }
 
         return res
@@ -153,7 +156,7 @@ export const deleteTweet = asyncHandler(
         const tweet = await Tweet.findByIdAndDelete(tweetId);
 
         if (!tweet) {
-            return new ApiError(404, "Tweet not found");
+            return new ApiError(404, "Tweet not or not deleted");
         }
 
         await Like.deleteMany({ tweet: new mongoose.Types.ObjectId(tweetId) });
