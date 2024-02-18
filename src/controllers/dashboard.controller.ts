@@ -18,6 +18,16 @@ export const getChannelStats = asyncHandler(
 
 export const getChannelVideos = asyncHandler(
     async (req: Request, res: Response) => {
-        // TODO: Get all the videos uploaded by the channel
+        const videos = Video.find({ owner: (req as any).user._id });
+        
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    videos,
+                    "Videos fetched successfully"
+                )
+            );
     }
 );
