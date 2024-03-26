@@ -6,6 +6,11 @@ const likeSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
         },
+        likeFor: {
+            type: String,
+            required: true,
+            enum: ["video", "comment", "tweet"],
+        },
         video: {
             type: Schema.Types.ObjectId,
             ref: "Video",
