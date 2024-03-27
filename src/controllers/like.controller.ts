@@ -26,12 +26,22 @@ export const toggleVideoLike = asyncHandler(
                 video: new mongoose.Types.ObjectId(videoId),
                 likeFor: "video",
             });
+
+            if (!like) {
+                return new ApiError(500, "Some error occured while adding like");
+            }
+
             message = "Liked added successfully";
         } else {
             like = await Like.deleteOne({
                 likedBy: new mongoose.Types.ObjectId((req as any).user._id),
                 video: new mongoose.Types.ObjectId(videoId),
             });
+            
+            if (!like) {
+                return new ApiError(500, "Some error occured while removing like");
+            }
+
             message = "Liked removed successfully"
         }
 
@@ -68,12 +78,22 @@ export const toggleCommentLike = asyncHandler(
                 comment: new mongoose.Types.ObjectId(commentId),
                 likeFor: "comment",
             });
+
+            if (!like) {
+                return new ApiError(500, "Some error occured while adding like");
+            }
+
             message = "Liked added successfully";
         } else {
             like = await Like.deleteOne({
                 likedBy: new mongoose.Types.ObjectId((req as any).user._id),
                 comment: new mongoose.Types.ObjectId(commentId),
             });
+
+            if (!like) {
+                return new ApiError(500, "Some error occured while removing like");
+            }
+
             message = "Liked removed successfully"
         }
 
@@ -110,12 +130,22 @@ export const toggleTweetLike = asyncHandler(
                 tweet: new mongoose.Types.ObjectId(tweetId),
                 likeFor: "tweet",
             });
+
+            if (!like) {
+                return new ApiError(500, "Some error occured while adding like");
+            }
+
             message = "Liked added successfully";
         } else {
             like = await Like.deleteOne({
                 likedBy: new mongoose.Types.ObjectId((req as any).user._id),
                 tweet: new mongoose.Types.ObjectId(tweetId),
             });
+
+            if (!like) {
+                return new ApiError(500, "Some error occured while removing like");
+            }
+
             message = "Liked removed successfully"
         }
 
@@ -140,6 +170,10 @@ export const getLikedVideos = asyncHandler(
         })
         .populate("likedBy")
         .populate("video");
+
+        if (!likedVideos) {
+            return new ApiError(500, "Some error occured while fetching liked videos");
+        }
 
         return res
             .status(200)

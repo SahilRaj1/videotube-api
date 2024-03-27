@@ -98,6 +98,10 @@ export const getUserTweets = asyncHandler(
             }
         ]);
 
+        if (!tweets) {
+            return new ApiError(500, "Some error occurred while fetching tweets");
+        }
+
         return res
             .status(200)
             .json(
@@ -130,7 +134,7 @@ export const updateTweet = asyncHandler(
         );
 
         if (!tweet) {
-            return new ApiError(404, "Tweet not found or not updated");
+            return new ApiError(404, "Some error occurred while updating tweet");
         }
 
         return res
@@ -156,7 +160,7 @@ export const deleteTweet = asyncHandler(
         const tweet = await Tweet.findByIdAndDelete(tweetId);
 
         if (!tweet) {
-            return new ApiError(404, "Tweet not or not deleted");
+            return new ApiError(404, "Some error occurred while deleting tweet");
         }
 
         await Like.deleteMany({ tweet: new mongoose.Types.ObjectId(tweetId) });
